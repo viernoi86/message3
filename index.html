@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📨Envoyer un message</title>
+
+<link rel="icon" type="image/png" href="logo.jpg">
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #bfbfbf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  background: #e0e0e0;
+  padding: 30px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+h1 {
+  color: #d00000;
+  margin-bottom: 20px;
+}
+
+textarea {
+  width: 100%;
+  height: 140px;
+  background: #ffffff;
+  border: 2px solid #d00000;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 20px;
+}
+
+textarea::placeholder {
+  color: #888;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.buttons button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #000;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.buttons button:hover {
+  background: #f5f5f5;
+}
+
+.buttons button.active {
+  border: 2px solid #d00000;
+}
+
+#expediteur-info {
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+#envoyer {
+  width: 100%;
+  padding: 12px;
+  background: #28a745;
+  border: 2px solid #1e7e34;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#envoyer:hover {
+  background: #218838;
+  border-color: #1c7430;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>📨Envoyer un message</h1>
+
+  <textarea id="message" placeholder="Tape ton message ici..."></textarea>
+
+  <div class="buttons">
+    <button onclick="selectionnerExpediteur(this,'Maman','https://discord.com/api/webhooks/1365373680225488926/MCbBTyzOk2WymcFlD7xxnLsWex38beWIlIJhJull2aywZ01GtxAOP_rtB3lbPHCMPkaH')">Maman</button>
+    <button onclick="selectionnerExpediteur(this,'Papa','https://discord.com/api/webhooks/1365367502586122330/tznyZlteXzlC7r4APfy2cIM8eGkFVa810u2WDuswUQp6hNRyf58sh1-BXopRFS3DY7PG')">Papa</button>
+    <button onclick="selectionnerExpediteur(this,'Paloma','https://discord.com/api/webhooks/1365373655688806440/Q5EvTL4ksguY5BFG9YM6qyp2THTK0vy0J7oFctZ95BPI3tyNcimE-1frLZbx9tfjZ1oJ')">Paloma</button>
+  </div>
+
+  <div id="expediteur-info">
+    <strong id="expediteur-nom">Aucun expéditeur sélectionné</strong>
+  </div>
+
+  <button id="envoyer" onclick="envoyerMessage()">📨Envoyer</button>
+</div>
+
+<!-- iframe cachée pour WhatsApp -->
+<iframe id="hiddenFrame" style="display:none;"></iframe>
+
+<script>
+let expediteurSelectionne = null;
+let webhookSelectionne = null;
+
+function selectionnerExpediteur(btn, nom, webhook) {
+  expediteurSelectionne = nom;
+  webhookSelectionne = webhook;
+
+  document.getElementById("expediteur-nom").innerText =
+    "Expéditeur : " + nom;
+
+  document.querySelectorAll(".buttons button")
+    .forEach(b => b.classList.remove("active"));
+
+  btn.classList.add("active");
+}
+
+function envoyerMessage() {
+  let message = document.getElementById("message").value;
+
+  if (!expediteurSelectionne) {
+    alert("Veuillez sélectionner un expéditeur.");
+    return;
+  }
+
+  if (message.trim() === "") {
+    alert("Le message est vide.");
+    return;
+  }
+
+  // 🔥 Message Discord (avec mentions)
+  let messageDiscord = `<@982353417093672990> <@1320337476258103336> ${message}`;
+
+  // 🔥 Message WhatsApp (avec prénom)
+  let messageWhatsApp = `${expediteurSelectionne} : ${message}`;
+
+  // ===== DISCORD =====
+  fetch(webhookSelectionne, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content: messageDiscord })
+  });
+
+  // ===== WHATSAPP =====
+  const phone = "33782987680";
+  const apikey = "7342931";
+
+  const url = `https://api.callmebot.com/whatsapp.php?phone=${phone}&text=${encodeURIComponent(messageWhatsApp)}&apikey=${apikey}`;
+
+  document.getElementById("hiddenFrame").src = url;
+
+  // ===== UI =====
+  alert("Message envoyé sur Discord + WhatsApp ✅");
+  document.getElementById("message").value = "";
+}
+</script>
+
+</body>
+</html>
